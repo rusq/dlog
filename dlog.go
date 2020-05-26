@@ -1,4 +1,4 @@
-// Package log is wrapper standard go logger that adds the debug output
+// Package log is a wrapper around standard go logger that adds the debug output
 // functions.
 package dlog
 
