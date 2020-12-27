@@ -82,9 +82,21 @@ func SetDebug(b bool) {
 
 // SetDebug sets/resets the debugging output.
 func (l *Logger) SetDebug(b bool) {
+	if l.Logger == nil {
+		l.Logger = defaultLogger()
+	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.debug = b
+	if b {
+		l.SetFlags(l.Flags() | log.Lshortfile)
+	} else {
+		l.SetFlags(l.Flags() &^ (1 << log.Lshortfile))
+	}
+}
+
+func defaultLogger() *log.Logger {
+	return log.New(os.Stderr, "", log.LstdFlags)
 }
 
 // Writer returns the output destination for the standard logger.
