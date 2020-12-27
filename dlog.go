@@ -73,6 +73,11 @@ func SetPrefix(prefix string) {
 	std.SetPrefix(prefix)
 }
 
+// SetDebug sets/resets debugging output.
+func SetDebug(b bool) {
+	std.debug = b
+}
+
 // Writer returns the output destination for the standard logger.
 func Writer() io.Writer {
 	return std.Writer()
