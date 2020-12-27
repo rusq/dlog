@@ -2,6 +2,9 @@
  Standard Logger Ex
 ====================
 
+.. image:: https://travis-ci.com/rusq/dlog.svg?branch=master
+    :target: https://travis-ci.com/rusq/dlog
+
  What is this?
 ===============
 
