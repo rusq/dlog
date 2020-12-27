@@ -6,11 +6,13 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
 )
 
 type Logger struct {
 	*log.Logger
 	debug bool
+	mu    sync.Mutex
 }
 
 var std *Logger
@@ -73,9 +75,16 @@ func SetPrefix(prefix string) {
 	std.SetPrefix(prefix)
 }
 
-// SetDebug sets/resets debugging output.
+// SetDebug sets/resets the debugging output.
 func SetDebug(b bool) {
-	std.debug = b
+	std.SetDebug(b)
+}
+
+// SetDebug sets/resets the debugging output.
+func (l *Logger) SetDebug(b bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.debug = b
 }
 
 // Writer returns the output destination for the standard logger.
