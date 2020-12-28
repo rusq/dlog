@@ -31,20 +31,29 @@ func New(out io.Writer, prefix string, flag int, debug bool) *Logger {
 }
 
 func (l *Logger) Debug(v ...interface{}) {
+	if l.Logger == nil {
+		l.Logger = defaultLogger()
+	}
 	if l.debug {
-		log.Print(v...)
+		l.Logger.Print(v...)
 	}
 }
 
 func (l *Logger) Debugln(v ...interface{}) {
+	if l.Logger == nil {
+		l.Logger = defaultLogger()
+	}
 	if l.debug {
-		log.Println(v...)
+		l.Logger.Println(v...)
 	}
 }
 
 func (l *Logger) Debugf(format string, a ...interface{}) {
+	if l.Logger == nil {
+		l.Logger = defaultLogger()
+	}
 	if l.debug {
-		log.Printf(format, a...)
+		l.Logger.Printf(format, a...)
 	}
 }
 
