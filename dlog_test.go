@@ -3,7 +3,10 @@
 package dlog
 
 import (
+	"bytes"
 	"log"
+	"os"
+	"regexp"
 	"testing"
 )
 
@@ -38,6 +41,127 @@ func TestLogger_SetDebug(t *testing.T) {
 			}
 			if flags := l.Flags(); flags != tt.wantFlags {
 				t.Errorf("want flags: %v, got flags: %v", tt.wantFlags, flags)
+			}
+		})
+	}
+}
+
+func TestLogger_Debug(t *testing.T) {
+	type fields struct {
+		Logger *log.Logger
+		debug  bool
+	}
+	type args struct {
+		v []interface{}
+	}
+	tests := []struct {
+		name         string
+		fields       fields
+		args         args
+		wantOutputRe string
+	}{
+		{"debug is on",
+			fields{debug: true},
+			args{v: []interface{}{"message1 ", "message2"}},
+			`^.*message1\s+message2`,
+		},
+		{"debug is off",
+			fields{debug: false},
+			args{v: []interface{}{"message1 ", "message2"}},
+			`^$`,
+		},
+		{"debug is on, prefix is set",
+			fields{Logger: log.New(os.Stderr, "testxxx: ", log.LstdFlags), debug: true},
+			args{v: []interface{}{"message1 ", "message2"}},
+			`^testxxx: .*message1\s+message2$`,
+		},
+		{"debug is off, prefix is set",
+			fields{Logger: log.New(os.Stderr, "testxxx: ", log.LstdFlags), debug: false},
+			args{v: []interface{}{"message1 ", "message2"}},
+			`^$`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := &Logger{
+				Logger: tt.fields.Logger,
+				debug:  tt.fields.debug,
+			}
+			if l.Logger == nil {
+				l.Logger = defaultLogger()
+			}
+			re, err := regexp.Compile(tt.wantOutputRe)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for i, fn := range []func(arg ...interface{}){l.Debug, l.Debugln} {
+				var buf bytes.Buffer
+				l.SetOutput(&buf)
+				fn(tt.args.v...)
+
+				if !re.Match(bytes.TrimSpace(buf.Bytes())) {
+					t.Errorf("output for fn: %d: mismatch: wantRE: %q, got: %q", i, tt.wantOutputRe, buf.String())
+				}
+			}
+		})
+	}
+}
+
+func TestLogger_Debugf(t *testing.T) {
+	type fields struct {
+		Logger *log.Logger
+		debug  bool
+	}
+	type args struct {
+		format string
+		v      []interface{}
+	}
+	tests := []struct {
+		name         string
+		fields       fields
+		args         args
+		wantOutputRe string
+	}{
+		{"debug is on",
+			fields{debug: true},
+			args{format: "%s%s", v: []interface{}{"message1 ", "message2"}},
+			`^.*message1\s+message2`,
+		},
+		{"debug is off",
+			fields{debug: false},
+			args{format: "%s%s", v: []interface{}{"message1 ", "message2"}},
+			`^$`,
+		},
+		{"debug is on, prefix is set",
+			fields{Logger: log.New(os.Stderr, "testxxx: ", log.LstdFlags), debug: true},
+			args{format: "%s%s", v: []interface{}{"message1 ", "message2"}},
+			`^testxxx: .*message1\s+message2$`,
+		},
+		{"debug is off, prefix is set",
+			fields{Logger: log.New(os.Stderr, "testxxx: ", log.LstdFlags), debug: false},
+			args{format: "%s%s", v: []interface{}{"message1 ", "message2"}},
+			`^$`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := &Logger{
+				Logger: tt.fields.Logger,
+				debug:  tt.fields.debug,
+			}
+			if l.Logger == nil {
+				l.Logger = defaultLogger()
+			}
+			re, err := regexp.Compile(tt.wantOutputRe)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var buf bytes.Buffer
+			l.SetOutput(&buf)
+			l.Debugf(tt.args.format, tt.args.v...)
+
+			if !re.Match(bytes.TrimSpace(buf.Bytes())) {
+				t.Errorf("output mismatch: wantRE: %q, got: %q", tt.wantOutputRe, buf.String())
 			}
 		})
 	}
