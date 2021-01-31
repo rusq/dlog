@@ -4,9 +4,12 @@ package dlog
 
 import (
 	"bytes"
+	"context"
 	"log"
 	"os"
+	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -162,6 +165,45 @@ func TestLogger_Debugf(t *testing.T) {
 
 			if !re.Match(bytes.TrimSpace(buf.Bytes())) {
 				t.Errorf("output mismatch: wantRE: %q, got: %q", tt.wantOutputRe, buf.String())
+			}
+		})
+	}
+}
+
+func TestNewContext(t *testing.T) {
+	var buf strings.Builder
+	l := New(&buf, ">", log.LstdFlags, true)
+	ctx := NewContext(context.Background(), l)
+
+	lFromCtx, ok := ctx.Value(loggerKey).(*Logger)
+	if lFromCtx == nil || !ok {
+		t.Fatal("failed to get the logger from context")
+	}
+
+	const testVal = "TestNewContext"
+	lFromCtx.Println(testVal)
+	if !strings.Contains(buf.String(), testVal) {
+		t.Fatalf("invalid logger: test value %v, not found in output %v", testVal, buf.String())
+	}
+}
+
+func TestFromContext(t *testing.T) {
+	custom := New(os.Stdout, ">", log.LstdFlags, true)
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name string
+		args args
+		want *Logger
+	}{
+		{"standard logger", args{context.Background()}, std},
+		{"custom logger", args{NewContext(context.Background(), custom)}, custom},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := FromContext(tt.args.ctx); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FromContext() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -3,6 +3,7 @@
 package dlog
 
 import (
+	"context"
 	"io"
 	"log"
 	"os"
@@ -14,6 +15,10 @@ type Logger struct {
 	debug bool
 	mu    sync.Mutex
 }
+
+type key int
+
+var loggerKey key
 
 var std *Logger
 
@@ -55,6 +60,21 @@ func (l *Logger) Debugf(format string, a ...interface{}) {
 	if l.debug {
 		l.Logger.Printf(format, a...)
 	}
+}
+
+// NewContext returns a new Context that has logger attached.
+func NewContext(ctx context.Context, l *Logger) context.Context {
+	return context.WithValue(ctx, loggerKey, l)
+}
+
+// FromContext returns the Logger value stored in ctx, if any.  If no Logger
+// is present, it returns the standard logger instance.
+func FromContext(ctx context.Context) *Logger {
+	l, ok := ctx.Value(loggerKey).(*Logger)
+	if l == nil || !ok {
+		l = std
+	}
+	return l
 }
 
 // SetOutput sets the output destination for the standard logger.
