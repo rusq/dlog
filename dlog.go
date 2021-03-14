@@ -4,6 +4,7 @@ package dlog
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -40,7 +41,7 @@ func (l *Logger) Debug(v ...interface{}) {
 		l.Logger = defaultLogger()
 	}
 	if l.debug {
-		l.Logger.Print(v...)
+		l.Output(2, fmt.Sprint(v...))
 	}
 }
 
@@ -49,7 +50,7 @@ func (l *Logger) Debugln(v ...interface{}) {
 		l.Logger = defaultLogger()
 	}
 	if l.debug {
-		l.Logger.Println(v...)
+		l.Output(2, fmt.Sprintln(v...))
 	}
 }
 
@@ -58,7 +59,7 @@ func (l *Logger) Debugf(format string, a ...interface{}) {
 		l.Logger = defaultLogger()
 	}
 	if l.debug {
-		l.Logger.Printf(format, a...)
+		l.Output(2, fmt.Sprintf(format, a...))
 	}
 }
 
@@ -144,43 +145,52 @@ func Print(v ...interface{}) {
 // Printf calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) {
-	std.Printf(format, v...)
+	std.Output(2, fmt.Sprintf(format, v...))
 }
 
 // Println calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
 func Println(v ...interface{}) {
-	std.Println(v...)
+	std.Output(2, fmt.Sprintln(v...))
 }
 
 // Fatal is equivalent to Print() followed by a call to os.Exit(1).
 func Fatal(v ...interface{}) {
-	std.Fatal(v...)
+	std.Output(2, fmt.Sprint(v...))
+	os.Exit(1)
 }
 
 // Fatalf is equivalent to Printf() followed by a call to os.Exit(1).
 func Fatalf(format string, v ...interface{}) {
-	std.Fatalf(format, v...)
+	std.Output(2, fmt.Sprintf(format, v...))
+	os.Exit(1)
 }
 
 // Fatalln is equivalent to Println() followed by a call to os.Exit(1).
 func Fatalln(v ...interface{}) {
-	std.Fatalln(v...)
+	std.Output(2, fmt.Sprintln(v...))
+	os.Exit(1)
 }
 
 // Panic is equivalent to Print() followed by a call to panic().
-func Panic(v ...interface{}) {
-	std.Panic(v...)
+func (l *Logger) Panic(v ...interface{}) {
+	s := fmt.Sprint(v...)
+	l.Output(2, s)
+	panic(s)
 }
 
 // Panicf is equivalent to Printf() followed by a call to panic().
-func Panicf(format string, v ...interface{}) {
-	std.Panicf(format, v...)
+func (l *Logger) Panicf(format string, v ...interface{}) {
+	s := fmt.Sprintf(format, v...)
+	l.Output(2, s)
+	panic(s)
 }
 
 // Panicln is equivalent to Println() followed by a call to panic().
-func Panicln(v ...interface{}) {
-	std.Panicln(v...)
+func (l *Logger) Panicln(v ...interface{}) {
+	s := fmt.Sprintln(v...)
+	l.Output(2, s)
+	panic(s)
 }
 
 // Output writes the output for a logging event. The string s contains

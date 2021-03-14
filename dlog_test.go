@@ -128,7 +128,7 @@ func TestLogger_Debugf(t *testing.T) {
 		{"debug is on",
 			fields{debug: true},
 			args{format: "%s%s", v: []interface{}{"message1 ", "message2"}},
-			`^.*message1\s+message2`,
+			`^.*dlog_test\.go:.*message1\s+message2`,
 		},
 		{"debug is off",
 			fields{debug: false},
@@ -138,7 +138,7 @@ func TestLogger_Debugf(t *testing.T) {
 		{"debug is on, prefix is set",
 			fields{Logger: log.New(os.Stderr, "testxxx: ", log.LstdFlags), debug: true},
 			args{format: "%s%s", v: []interface{}{"message1 ", "message2"}},
-			`^testxxx: .*message1\s+message2$`,
+			`^testxxx: .*dlog_test\.go:.*message1\s+message2$`,
 		},
 		{"debug is off, prefix is set",
 			fields{Logger: log.New(os.Stderr, "testxxx: ", log.LstdFlags), debug: false},
@@ -150,7 +150,6 @@ func TestLogger_Debugf(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			l := &Logger{
 				Logger: tt.fields.Logger,
-				debug:  tt.fields.debug,
 			}
 			if l.Logger == nil {
 				l.Logger = defaultLogger()
@@ -159,6 +158,8 @@ func TestLogger_Debugf(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			l.SetDebug(tt.fields.debug)
+
 			var buf bytes.Buffer
 			l.SetOutput(&buf)
 			l.Debugf(tt.args.format, tt.args.v...)
