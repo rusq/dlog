@@ -78,6 +78,21 @@ func FromContext(ctx context.Context) *Logger {
 	return l
 }
 
+// NewContext returns a new Context that has logger attached.
+func NewContext(ctx context.Context, l *Logger) context.Context {
+	return context.WithValue(ctx, loggerKey, l)
+}
+
+// FromContext returns the Logger value stored in ctx, if any.  If no Logger
+// is present, it returns the standard logger instance.
+func FromContext(ctx context.Context) *Logger {
+	l, ok := ctx.Value(loggerKey).(*Logger)
+	if l == nil || !ok {
+		l = std
+	}
+	return l
+}
+
 // SetOutput sets the output destination for the standard logger.
 func SetOutput(w io.Writer) {
 	std.Logger.SetOutput(w)
