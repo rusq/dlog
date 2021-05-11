@@ -215,3 +215,18 @@ func Debugf(format string, v ...interface{}) {
 func Debugln(v ...interface{}) {
 	std.Debugln(v...)
 }
+
+// Panic is equivalent to Print() followed by a call to panic().
+func Panic(v ...interface{}) {
+	std.Panic(v...)
+}
+
+// Panicf is equivalent to Printf() followed by a call to panic().
+func Panicf(format string, v ...interface{}) {
+	std.Panicf(format, v...)
+}
+
+// Panicln is equivalent to Println() followed by a call to panic().
+func Panicln(v ...interface{}) {
+	std.Panicln(v...)
+}
