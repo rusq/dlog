@@ -14,10 +14,10 @@ import (
 )
 
 func TestLogger_SetDebug(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		Logger *log.Logger
 		debug  bool
-		//mu     sync.Mutex
 	}
 	type args struct {
 		b bool
@@ -50,6 +50,7 @@ func TestLogger_SetDebug(t *testing.T) {
 }
 
 func TestLogger_Debug(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		Logger *log.Logger
 		debug  bool
@@ -111,6 +112,7 @@ func TestLogger_Debug(t *testing.T) {
 }
 
 func TestLogger_Debugf(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		Logger *log.Logger
 		debug  bool
@@ -205,6 +207,88 @@ func TestFromContext(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := FromContext(tt.args.ctx); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("FromContext() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_Debugf(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		format string
+		v      []interface{}
+	}
+	tests := []struct {
+		name         string
+		debug        bool
+		args         args
+		wantOutputRe string
+	}{
+		{"debug is on",
+			true,
+			args{format: "%s%s", v: []interface{}{"message1 ", "message2"}},
+			`^.*dlog_test\.go:.*message1\s+message2`,
+		},
+		{"debug is off",
+			false,
+			args{format: "%s%s", v: []interface{}{"message1 ", "message2"}},
+			`^$`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			re, err := regexp.Compile(tt.wantOutputRe)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			SetDebug(tt.debug)
+			defer SetDebug(false)
+
+			var buf bytes.Buffer
+			SetOutput(&buf)
+			defer SetOutput(os.Stderr)
+
+			Debugf(tt.args.format, tt.args.v...)
+
+			if !re.Match(bytes.TrimSpace(buf.Bytes())) {
+				t.Errorf("output mismatch: wantRE: %q, got: %q", tt.wantOutputRe, buf.String())
+			}
+		})
+	}
+}
+
+func Test_Printf(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		format string
+		v      []interface{}
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantOutputRe string
+	}{
+		{"debug is on",
+			args{format: "printf: %s%s", v: []interface{}{"message1 ", "message2"}},
+			`^.*printf: message1\s+message2`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			re, err := regexp.Compile(tt.wantOutputRe)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var buf bytes.Buffer
+			SetOutput(&buf)
+			defer SetOutput(os.Stderr)
+
+			Printf(tt.args.format, tt.args.v...)
+
+			if !re.Match(bytes.TrimSpace(buf.Bytes())) {
+				t.Errorf("output mismatch: wantRE: %q, got: %q", tt.wantOutputRe, buf.String())
 			}
 		})
 	}

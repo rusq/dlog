@@ -17,11 +17,11 @@ type Logger struct {
 	mu    sync.Mutex
 }
 
+var std *Logger
+
 type key int
 
 var loggerKey key
-
-var std *Logger
 
 func init() {
 	isDebug := (os.Getenv("DEBUG") != "")
@@ -33,7 +33,9 @@ func init() {
 }
 
 func New(out io.Writer, prefix string, flag int, debug bool) *Logger {
-	return &Logger{Logger: log.New(out, prefix, flag), debug: debug}
+	l := Logger{Logger: log.New(out, prefix, flag), debug: false}
+	l.SetDebug(debug)
+	return &l
 }
 
 func (l *Logger) Debug(v ...interface{}) {
@@ -54,12 +56,12 @@ func (l *Logger) Debugln(v ...interface{}) {
 	}
 }
 
-func (l *Logger) Debugf(format string, a ...interface{}) {
+func (l *Logger) Debugf(format string, v ...interface{}) {
 	if l.Logger == nil {
 		l.Logger = defaultLogger()
 	}
 	if l.debug {
-		l.Output(2, fmt.Sprintf(format, a...))
+		l.Output(2, fmt.Sprintf(format, v...))
 	}
 }
 
@@ -76,6 +78,21 @@ func FromContext(ctx context.Context) *Logger {
 		l = std
 	}
 	return l
+}
+
+// SetDebug sets/resets the debugging output.
+func (l *Logger) SetDebug(b bool) {
+	if l.Logger == nil {
+		l.Logger = defaultLogger()
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.debug = b
+	if b {
+		l.SetFlags(l.Flags() | log.Lshortfile)
+	} else {
+		l.SetFlags(l.Flags() &^ (1 << log.Lshortfile))
+	}
 }
 
 // SetOutput sets the output destination for the standard logger.
@@ -108,21 +125,6 @@ func SetPrefix(prefix string) {
 // SetDebug sets/resets the debugging output.
 func SetDebug(b bool) {
 	std.SetDebug(b)
-}
-
-// SetDebug sets/resets the debugging output.
-func (l *Logger) SetDebug(b bool) {
-	if l.Logger == nil {
-		l.Logger = defaultLogger()
-	}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.debug = b
-	if b {
-		l.SetFlags(l.Flags() | log.Lshortfile)
-	} else {
-		l.SetFlags(l.Flags() &^ (1 << log.Lshortfile))
-	}
 }
 
 func defaultLogger() *log.Logger {
@@ -205,15 +207,21 @@ func Output(calldepth int, s string) error {
 }
 
 func Debug(v ...interface{}) {
-	std.Debug(v...)
+	if std.debug {
+		std.Output(2, fmt.Sprint(v...))
+	}
 }
 
 func Debugf(format string, v ...interface{}) {
-	std.Debugf(format, v...)
+	if std.debug {
+		std.Output(2, fmt.Sprintf(format, v...))
+	}
 }
 
 func Debugln(v ...interface{}) {
-	std.Debugln(v...)
+	if std.debug {
+		std.Output(2, fmt.Sprintln(v...))
+	}
 }
 
 // Panic is equivalent to Print() followed by a call to panic().
