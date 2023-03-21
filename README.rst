@@ -5,8 +5,8 @@
 .. image:: https://pkg.go.dev/badge/github.com/rusq/dlog.svg
    :target: https://pkg.go.dev/github.com/rusq/dlog
 
- What is this?
-===============
+What is this?
+=============
 
 This is a simple wrapper around the standard go runtime logger with only one
 goal:
