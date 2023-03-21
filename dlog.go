@@ -95,6 +95,11 @@ func (l *Logger) SetDebug(b bool) {
 	}
 }
 
+// IsDebug returns true if the debugging output is enabled.
+func (l *Logger) IsDebug() bool {
+	return l.debug
+}
+
 // SetOutput sets the output destination for the standard logger.
 func SetOutput(w io.Writer) {
 	std.Logger.SetOutput(w)
@@ -125,6 +130,11 @@ func SetPrefix(prefix string) {
 // SetDebug sets/resets the debugging output.
 func SetDebug(b bool) {
 	std.SetDebug(b)
+}
+
+// IsDebug returns true if the debugging output is enabled.
+func IsDebug() bool {
+	return std.IsDebug()
 }
 
 func defaultLogger() *log.Logger {
