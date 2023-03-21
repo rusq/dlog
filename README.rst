@@ -2,8 +2,8 @@
  Standard Logger Ex
 ====================
 
-.. image:: https://travis-ci.com/rusq/dlog.svg?branch=master
-    :target: https://travis-ci.com/rusq/dlog
+.. image:: https://pkg.go.dev/badge/github.com/rusq/dlog.svg
+   :target: https://pkg.go.dev/github.com/rusq/dlog
 
 What is this?
 =============
@@ -46,3 +46,11 @@ Use:
 .. code:: go
 
    log.Debug("hello debug!")
+
+Check if debug is enabled:
+
+.. code:: go
+
+   log.IsDebug()
+
+
