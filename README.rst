@@ -5,8 +5,8 @@
 .. image:: https://travis-ci.com/rusq/dlog.svg?branch=master
     :target: https://travis-ci.com/rusq/dlog
 
- What is this?
-===============
+What is this?
+=============
 
 This is a simple wrapper around the standard go runtime logger with only one
 goal:
